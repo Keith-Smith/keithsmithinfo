@@ -5,9 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
+# mysql+pymysql://<username>:<password>@<host>/<dbname>[?<options>]
 
-
-SQLALCHEMY_DATABASE_URI = "mysql+mysqlconnector://{username}:{password}@{hostname}/{databasename}".format(
+SQLALCHEMY_DATABASE_URI = "mysql+pymysql://{username}:{password}@{hostname}/{databasename}".format(
     username="KeithESmith",
     password="mysqlBlaze",
     hostname="KeithESmith.mysql.pythonanywhere-services.com",
@@ -27,12 +27,14 @@ class Comment(db.Model):
     content = db.Column(db.String(4096))
 
 
-comments = []
 
 @app.route('/', methods=["GET", "POST"])
 def index():
     if request.method == "GET":
-        return render_template('test.html', comments=comments)
-    comments.append(request.form["contents"])
-    return render_template('test.html', comments=comments)
+        return render_template('test.html', comments=Comment.query.all())
+        
+    comment = Comment(content=request.form["contents"])
+    db.session.add(comment)
+    db.session.commit()
+    return render_template('test.html', comments=Comment.query.all())
 
